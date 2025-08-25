@@ -811,14 +811,26 @@ local UpdatingFunctions = {
 	end,
 
 	Chams = function(Entry, Part, Cham)
-		local Settings = Environment.Properties.Chams
 
-		if not (Part and Cham and Entry) then
-			return
-		end
-
-		local ChamsEnabled, ESPEnabled = Settings.Enabled, Environment.Settings.Enabled
-		local IsReady = Entry.Checks.Ready
+        Chams = function(Entry, Part, Cham)
+            local Settings = Environment.Properties.Chams
+            
+            if not (Part and Cham and Entry) then
+                return
+            end
+        
+            local ChamsEnabled, ESPEnabled = Settings.Enabled, Environment.Settings.Enabled
+            local IsReady = Entry.Checks.Ready
+        
+            -- Добавьте эту проверку
+            if not (ChamsEnabled and ESPEnabled and IsReady) then
+                for Index = 1, 6 do
+                    _set(Cham["Quad"..Index], "Visible", false)
+                end
+                return
+            end
+        
+        end
 
 		local ConvertVector = CoreFunctions.ConvertVector
 
@@ -856,16 +868,6 @@ local UpdatingFunctions = {
 
 			for _, RenderObject in next, Quads do
 				_set(RenderObject, Index, Value)
-				-- Ensure Chams properties are always set
-				if Index == "Visible" or Index == "Color" then
-					-- already set above
-				elseif Index == "Transparency" then
-					_set(RenderObject, "Transparency", Settings.Transparency)
-				elseif Index == "Thickness" then
-					_set(RenderObject, "Thickness", Settings.Thickness)
-				elseif Index == "Filled" then
-					pcall(function() _set(RenderObject, "Filled", Settings.Filled) end)
-				end
 			end
 		end
 
@@ -1055,7 +1057,7 @@ local CreatingFunctions = {
 			return
 		end
 
-		local Humanoid = FindFirstChildOfClass(__index(Entry.Object, "parent"), "Humanoid")
+		local Humanoid = FindFirstChildOfClass(__index(Entry.Object, "Parent"), "Humanoid")
 
 		if not Entry.IsAPlayer and not Humanoid then
 			return
@@ -1197,6 +1199,27 @@ local CreatingFunctions = {
 			return
 		end
 
+        Crosshair = function()
+            if CrosshairParts.LeftLine then
+                return
+            end
+        
+            CrosshairParts = {
+                OutlineLeftLine = Drawingnew("Line"),
+                OutlineRightLine = Drawingnew("Line"),
+                OutlineTopLine = Drawingnew("Line"),
+                OutlineBottomLine = Drawingnew("Line"),
+                OutlineCenterDot = Drawingnew("Circle"),
+        
+                LeftLine = Drawingnew("Line"),
+                RightLine = Drawingnew("Line"),
+                TopLine = Drawingnew("Line"),
+                BottomLine = Drawingnew("Line"),
+                CenterDot = Drawingnew("Circle")
+            }
+            
+        end
+
 		local ServiceConnections = Environment.UtilityAssets.ServiceConnections
 		local DeveloperSettings = Environment.DeveloperSettings
 		local Settings = Environment.Properties.Crosshair
@@ -1248,7 +1271,7 @@ local CreatingFunctions = {
 				local AxisX, AxisY, Size = Axis.X, Axis.Y, Settings.Size
 
 				for ObjectName, RenderObject in next, RenderObjects do
-					for Index, _ in next, {Color = true, Transparency = true, Thickness = true, Filled = true} do
+					for Index, _ in next, {Color = true, Transparency = true, Thickness = true} do
 						local Value = Settings[Index]
 
 						if (Index == "Color" or Index == "Thickness") and (stringfind(ObjectName, "Outline") or stringfind(ObjectName, "CenterDot")) then
@@ -1264,10 +1287,6 @@ local CreatingFunctions = {
 						end
 
 						setrenderproperty(RenderObject, Index, Value)
-						-- Ensure all crosshair properties are set
-						if Index == "Filled" then
-							pcall(function() setrenderproperty(RenderObject, "Filled", Settings.Filled) end)
-						end
 					end
 				end
 
@@ -1361,10 +1380,6 @@ local CreatingFunctions = {
 
 						if Index ~= "Color" or Index ~= "Thickness" then
 							setrenderproperty(RenderObjects.OutlineCenterDot, Index, Value)
-						end
-						-- Ensure outline center dot matches all properties
-						if Index == "Filled" then
-							pcall(function() setrenderproperty(RenderObjects.OutlineCenterDot, "Filled", CenterDotSettings.Filled) end)
 						end
 					end
 
