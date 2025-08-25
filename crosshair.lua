@@ -237,8 +237,8 @@ function Environment.Functions:ResetSettings()
         SendNotifications = false,
         SaveSettings = false, -- Re-execute upon changing
         ReloadOnTeleport = false,
-        Enabled = true,
-        ToMouse = true
+        Enabled = false,
+        ToMouse = false
     }
 
     Environment.CrosshairSettings = {
